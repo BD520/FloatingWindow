@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">sample</string>
+    <string name="show_window">显示悬浮窗</string>
+    <string name="hide_window">隐藏悬浮窗</string>
 </resources>
