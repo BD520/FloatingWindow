@@ -44,6 +44,7 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
     private ImageView mIvScale;
     private LinearLayout mLlTitle;
     private FrameLayout mFlContent;
+    private ViewGroup mVgWindow;
 
     private boolean isShow = false;
     private boolean focusAble = false;
@@ -69,25 +70,48 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
             @Override
             public void onClick(View v) {
                 if (isHide) {
-                    mWindowLayoutParams.height = (int) lastWindowHeight;
+                    mTvTitle.setVisibility(View.VISIBLE);
+                    mTvFocus.setVisibility(View.VISIBLE);
+                    mTvClose.setVisibility(View.VISIBLE);
+                    mIvScale.setVisibility(View.VISIBLE);
+
+                    if (lastWindowHeight == 0) {
+                        mWindowLayoutParams.height = DEFAULT_HEIGHT;
+                        mWindowLayoutParams.width = DEFAULT_WIDTH;
+                    } else {
+                        mWindowLayoutParams.height = (int) lastWindowHeight;
+                        mWindowLayoutParams.width = (int) lastWindowWidth;
+                    }
                     mWindowManager.updateViewLayout(mWindowView, mWindowLayoutParams);
                 } else {
-                    mWindowLayoutParams.height = mLlTitle.getHeight();
+                    mTvTitle.setVisibility(View.GONE);
+                    mTvFocus.setVisibility(View.GONE);
+                    mTvClose.setVisibility(View.GONE);
+                    mIvScale.setVisibility(View.GONE);
+                    mWindowLayoutParams.height = (int) (mTvHide.getHeight() * 1.5);
+                    mWindowLayoutParams.width = (int) (mTvHide.getWidth() * 1.5);
+                    mWindowLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                            | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
+                    mTvFocus.setTextColor(Color.WHITE);
+                    mVgWindow.setBackgroundResource(R.drawable.bg_floating_border);
                     mWindowManager.updateViewLayout(mWindowView, mWindowLayoutParams);
                 }
                 isHide = !isHide;
             }
         });
+
         mTvFocus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (focusAble) {
                     mWindowLayoutParams.flags = WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
-                    mTvFocus.setTextColor(Color.GREEN);
+                    mTvFocus.setTextColor(Color.RED);
+                    mVgWindow.setBackgroundResource(R.drawable.bg_floating_border_red);
                 } else {
                     mWindowLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                             | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
-                    mTvFocus.setTextColor(Color.RED);
+                    mTvFocus.setTextColor(Color.WHITE);
+                    mVgWindow.setBackgroundResource(R.drawable.bg_floating_border);
                 }
                 focusAble = !focusAble;
 
@@ -124,7 +148,8 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
                         }
                         break;
                     case MotionEvent.ACTION_UP:
-
+                        lastWindowWidth = mWindowLayoutParams.width;
+                        lastWindowHeight = mWindowLayoutParams.height;
                         break;
                 }
                 return true;
@@ -142,6 +167,7 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
             mLlTitle = (LinearLayout) mWindowView.findViewById(R.id.ll_float_title);
             mFlContent = (FrameLayout) mWindowView.findViewById(R.id.fl_float_content);
             mIvScale = (ImageView) mWindowView.findViewById(R.id.iv_float_scale);
+            mVgWindow = (ViewGroup) mWindowView.findViewById(R.id.ll_float_window);
 
             mWindowView.setId(WINDOW_VIEW_ID);
             mWindowLayoutParams = new WindowManager.LayoutParams();
