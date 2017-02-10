@@ -2,6 +2,7 @@ package com.chenjianhong.floatingwindow.library;
 
 import android.Manifest;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -37,13 +38,16 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
     private View mWindowView;
     private WindowManager.LayoutParams mWindowLayoutParams;
     private TextView mTvClose;
+    private TextView mTvHide;
     private TextView mTvTitle;
+    private TextView mTvFocus;
     private ImageView mIvScale;
     private LinearLayout mLlTitle;
     private FrameLayout mFlContent;
 
     private boolean isShow = false;
-
+    private boolean focusAble = false;
+    private boolean isHide = false;
 
     public FloatingWindow(Context context) {
         mContext = context;
@@ -59,8 +63,38 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
     private float lastWindowHeight = 0;
 
     private void initEvent() {
-        mWindowView.setOnTouchListener(this);
+        mTvTitle.setOnTouchListener(this);
         mWindowView.setOnClickListener(this);
+        mTvHide.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isHide) {
+                    mWindowLayoutParams.height = (int) lastWindowHeight;
+                    mWindowManager.updateViewLayout(mWindowView, mWindowLayoutParams);
+                } else {
+                    mWindowLayoutParams.height = mLlTitle.getHeight();
+                    mWindowManager.updateViewLayout(mWindowView, mWindowLayoutParams);
+                }
+                isHide = !isHide;
+            }
+        });
+        mTvFocus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (focusAble) {
+                    mWindowLayoutParams.flags = WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
+                    mTvFocus.setTextColor(Color.GREEN);
+                } else {
+                    mWindowLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                            | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
+                    mTvFocus.setTextColor(Color.RED);
+                }
+                focusAble = !focusAble;
+
+                mWindowManager.updateViewLayout(mWindowView, mWindowLayoutParams);
+            }
+        });
+
         mTvClose.setOnClickListener(this);
         //窗口缩放
         mIvScale.setOnTouchListener(new View.OnTouchListener() {
@@ -102,6 +136,8 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
         if (mWindowView == null) {
             mWindowView = LayoutInflater.from(mContext).inflate(R.layout.view_floating_window, null);
             mTvClose = (TextView) mWindowView.findViewById(R.id.tv_float_close);
+            mTvHide = (TextView) mWindowView.findViewById(R.id.tv_float_hide);
+            mTvFocus = (TextView) mWindowView.findViewById(R.id.tv_float_focus);
             mTvTitle = (TextView) mWindowView.findViewById(R.id.tv_float_title);
             mLlTitle = (LinearLayout) mWindowView.findViewById(R.id.ll_float_title);
             mFlContent = (FrameLayout) mWindowView.findViewById(R.id.fl_float_content);
@@ -291,7 +327,7 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
                 lastY = motionEvent.getRawY();
                 break;
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -313,7 +349,11 @@ public class FloatingWindow implements View.OnTouchListener, View.OnClickListene
             mSizeChangedListener = listener;
     }
 
-    interface SizeChangedListener {
+    public String getTitle() {
+        return mTvTitle.getText().toString();
+    }
+
+    public interface SizeChangedListener {
         void onSizeChanged(int width, int height);
     }
 }
